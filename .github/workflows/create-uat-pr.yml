@@ -31,18 +31,18 @@ jobs:
           clean_branches=$(echo "$merged_branches" | sed 's/^adi789p\///')
           echo "Cleaned branches: $clean_branches"
 
-          # Save the cleaned branches to an environment variable for use in later steps
-          echo "cleaned_branches=$clean_branches" >> $GITHUB_ENV
+          # Set the cleaned branches as output for use in subsequent steps
+          echo "::set-output name=cleaned_branches::$clean_branches"
 
       # Step 4: Debug Cleaned Branches
       - name: Debug Cleaned Branches
         run: |
-          echo "Cleaned branches from the previous step: ${{ env.cleaned_branches }}"
+          echo "Cleaned branches from the previous step: ${{ steps.get_merged_branches.outputs.cleaned_branches }}"
 
       # Step 5: Create PRs for UAT
       - name: Create PRs for UAT
         run: |
-          for feature_branch in ${{ env.cleaned_branches }}
+          for feature_branch in ${{ steps.get_merged_branches.outputs.cleaned_branches }}
           do
             # Create PR from feature branch to uat with '-uat' suffix
             pr_title="${feature_branch}-uat"
