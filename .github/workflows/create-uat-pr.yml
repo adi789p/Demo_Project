@@ -14,15 +14,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 2: Authenticate GitHub CLI using the custom token 'GT_TOKEN'
+      # Step 2: Authenticate GitHub CLI using GitHub token
       - name: Authenticate GitHub CLI
         run: echo ${{ secrets.GT_TOKEN }} | gh auth login --with-token
 
-      # Step 3: Check for uncommitted changes (Optional)
-      - name: Check for uncommitted changes
-        run: git diff --exit-code || echo "There are uncommitted changes"
+      # Step 3: Fetch all branches (make sure we have the latest branches)
+      - name: Fetch all branches
+        run: git fetch --all
 
-      # Step 4: Create a pull request from 'develop' to 'uat' (for changes to UAT)
+      # Step 4: Get the branch name of the last commit (i.e., the feature branch)
+      - name: Get the feature branch name
+        id: feature_branch
+        run: |
+          # Extract the branch name from the HEAD of the commit
+          feature_branch=$(git rev-parse --abbrev-ref HEAD)
+          echo "Feature branch: $feature_branch"
+          echo "feature_branch=$feature_branch" >> $GITHUB_ENV
+
+      # Step 5: Check for differences between develop and uat
+      - name: Check for differences between develop and uat
+        run: |
+          git diff --quiet origin/uat..origin/develop || echo "There are changes between develop and uat"
+
+      # Step 6: Create the pull request for UAT (with dynamic feature branch name)
       - name: Create PR for UAT
         run: |
-          gh pr create --base uat --head develop --title "Deploy Changes to UAT" --body "PR for feature merge from develop to uat"
+          # Use the feature branch name with "-uat" suffix
+          pr_title="${{ env.feature_branch }}-uat"
+          gh pr create --base uat --head develop --title "Deploy ${pr_title} to UAT" --body "PR for feature merge from develop to uat for ${pr_title}"
