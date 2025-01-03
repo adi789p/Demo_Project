@@ -1,0 +1,24 @@
+name: Create PR for UAT after merge to develop
+
+on:
+  push:
+    branches:
+      - develop  # Trigger when changes are pushed to the 'develop' branch
+
+jobs:
+  create-pr-uat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Create a PR to UAT
+        run: |
+          # Extract branch name and create PR for UAT
+          PR_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          FEATURE_BRANCH=${PR_BRANCH/-develop/-uat}
+          
+          echo "Creating PR from $FEATURE_BRANCH to uat"
+          
+          # Create PR using GitHub CLI (ensure it’s installed and authenticated)
+          gh pr create --base uat --head $FEATURE_BRANCH --title "Deploy $FEATURE_BRANCH to UAT" --body "Automated PR for feature deployment to UAT" --label "deployment"
