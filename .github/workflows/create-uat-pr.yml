@@ -14,17 +14,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 2: Set up GitHub CLI
-      - name: Set up GitHub CLI
-        run: |
-          curl -sSL https://github.com/cli/cli/releases/download/v2.22.0/gh_2.22.0_linux_amd64.deb -o gh.deb
-          sudo dpkg -i gh.deb
-          sudo apt-get install -f
-
-      # Step 3: Authenticate GitHub CLI using GitHub token
+      # Step 2: Authenticate GitHub CLI using the custom token 'GT_TOKEN'
       - name: Authenticate GitHub CLI
-        run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
+        run: echo ${{ secrets.GT_TOKEN }} | gh auth login --with-token
+
+      # Step 3: Check for uncommitted changes (Optional)
+      - name: Check for uncommitted changes
+        run: git diff --exit-code || echo "There are uncommitted changes"
 
       # Step 4: Create a pull request from 'develop' to 'uat' (for changes to UAT)
       - name: Create PR for UAT
