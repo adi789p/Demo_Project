@@ -24,7 +24,7 @@ jobs:
         id: get_merged_branches
         run: |
           # Get merged feature branches from develop
-          merged_branches=$(git log --merges --pretty=format:"%s" | grep -oP 'Merge pull request #\d+ from \S+' | sed 's/Merge pull request #\d+ from //')
+          merged_branches=$(git log --merges --pretty=format:"%s" | grep -oP 'from \K\S+' | grep -v "develop" | grep -v "uat")
           echo "Merged branches: $merged_branches"
           echo "merged_branches=$merged_branches" >> $GITHUB_ENV
 
