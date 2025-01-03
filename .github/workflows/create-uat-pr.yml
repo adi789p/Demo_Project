@@ -23,13 +23,10 @@ jobs:
 
       # Step 3: Authenticate GitHub CLI using GitHub token
       - name: Authenticate GitHub CLI
-        run: gh auth login --with-token < $GITHUB_TOKEN
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
 
       # Step 4: Create a pull request from 'develop' to 'uat' (for changes to UAT)
       - name: Create PR for UAT
         run: |
           gh pr create --base uat --head develop --title "Deploy Changes to UAT" --body "PR for feature merge from develop to uat"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
