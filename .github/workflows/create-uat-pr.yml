@@ -1,5 +1,7 @@
 name: Create UAT PR
-
+permissions:
+  pull-requests: write
+  
 on:
   push:
     branches:
