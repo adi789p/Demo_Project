@@ -1,4 +1,4 @@
-name: Create UAT PR
+name: Create UAT PR for Feature Branches
 
 on:
   push:
@@ -14,15 +14,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 2: Authenticate GitHub CLI using the custom token 'GT_TOKEN'
+      # Step 2: Authenticate GitHub CLI using GitHub token
       - name: Authenticate GitHub CLI
         run: echo ${{ secrets.GT_TOKEN }} | gh auth login --with-token
 
-      # Step 3: Check for uncommitted changes (Optional)
-      - name: Check for uncommitted changes
-        run: git diff --exit-code || echo "There are uncommitted changes"
+      # Step 3: Fetch all branches (make sure we have the latest branches)
+      - name: Fetch all branches
+        run: git fetch --all
 
-      # Step 4: Create a pull request from 'develop' to 'uat' (for changes to UAT)
-      - name: Create PR for UAT
+      # Step 4: Get a list of merged feature branches from develop
+      - name: Get merged feature branches
+        id: feature_branches
         run: |
-          gh pr create --base uat --head develop --title "Deploy Changes to UAT" --body "PR for feature merge from develop to uat"
+          # Get the list of feature branches merged into develop
+          git fetch origin develop
+          merged_branches=$(git log --merges --oneline origin/develop..origin/develop | grep 'Merge pull request' | awk -F' ' '{print $3}' | sed 's/\/.*//g')
+          echo "Merged branches: $merged_branches"
+          echo "merged_branches=$merged_branches" >> $GITHUB_ENV
+
+      # Step 5: Loop through each feature branch and create a PR for UAT
+      - name: Create PRs for UAT
+        run: |
+          for feature_branch in ${{ env.merged_branches }}
+          do
+            # Create PR from feature branch to uat with '-uat' suffix
+            pr_title="${feature_branch}-uat"
+            pr_body="PR for feature merge from $feature_branch to uat"
+            gh pr create --base uat --head $feature_branch --title "$pr_title" --body "$pr_body"
+          done
