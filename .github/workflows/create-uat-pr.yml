@@ -10,7 +10,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Extract the branch name from the PR event
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Extract the branch name from the PR event
       - name: Get the feature branch name
         id: get_feature_branch
         run: |
@@ -18,7 +22,7 @@ jobs:
           echo "Feature branch: $feature_branch"
           echo "::set-output name=feature_branch::$feature_branch"
 
-      # Step 2: Create PR for UAT
+      # Step 3: Create PR for UAT
       - name: Create PR for UAT
         run: |
           feature_branch=${{ steps.get_feature_branch.outputs.feature_branch }}
