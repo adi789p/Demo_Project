@@ -1,34 +1,53 @@
 name: Create UAT PR
 
 on:
-  pull_request:
+  push:
     branches:
-      - develop  # Trigger workflow when a PR is merged into 'develop'
+      - develop  # Trigger the workflow on pushes to 'develop' branch
 
 jobs:
   create-pr-uat:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository
+      # Step 1: Checkout the code
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 2: Extract the branch name from the PR event
-      - name: Get the feature branch name
-        id: get_feature_branch
+      # Step 2: Set up Git
+      - name: Set up Git
         run: |
-          feature_branch=$(echo "${{ github.event.pull_request.head.ref }}")
-          echo "Feature branch: $feature_branch"
-          echo "::set-output name=feature_branch::$feature_branch"
+          git fetch --prune --unshallow
 
-      # Step 3: Create PR for UAT
-      - name: Create PR for UAT
+      # Step 3: Get merged feature branches from develop
+      - name: Get merged feature branches
+        id: get_merged_branches
         run: |
-          feature_branch=${{ steps.get_feature_branch.outputs.feature_branch }}
-          pr_title="${feature_branch}-uat"
-          pr_body="PR for feature merge from $feature_branch to uat"
-          echo "Creating PR for branch: $feature_branch"
-          gh pr create --base uat --head $feature_branch --title "$pr_title" --body "$pr_body"
+          # Get merged feature branches from develop
+          merged_branches=$(git log --merges --pretty=format:"%s" | grep -oP 'from \K\S+' | grep -v "develop" | grep -v "uat")
+          echo "Merged branches: $merged_branches"
+          
+          # Clean up the branch names to remove 'adi789p/' prefix if present
+          clean_branches=$(echo "$merged_branches" | sed 's/^adi789p\///')
+          echo "Cleaned branches: $clean_branches"
+
+          # Set the cleaned branches as output for use in subsequent steps
+          echo "::set-output name=cleaned_branches::$clean_branches"
+
+      # Step 4: Debug Cleaned Branches
+      - name: Debug Cleaned Branches
+        run: |
+          echo "Cleaned branches from the previous step: ${{ steps.get_merged_branches.outputs.cleaned_branches }}"
+
+      # Step 5: Create PRs for UAT
+      - name: Create PRs for UAT
+        run: |
+          for feature_branch in ${{ steps.get_merged_branches.outputs.cleaned_branches }}
+          do
+            # Create PR from feature branch to uat with '-uat' suffix
+            pr_title="${feature_branch}-uat"
+            pr_body="PR for feature merge from $feature_branch to uat"
+            gh pr create --base uat --head $feature_branch --title "$pr_title" --body "$pr_body"
+          done
         env:
           GH_TOKEN: ${{ secrets.GT_TOKEN }}
