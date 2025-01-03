@@ -26,17 +26,23 @@ jobs:
           # Get merged feature branches from develop
           merged_branches=$(git log --merges --pretty=format:"%s" | grep -oP 'from \K\S+' | grep -v "develop" | grep -v "uat")
           echo "Merged branches: $merged_branches"
-          echo "merged_branches=$merged_branches" >> $GITHUB_ENV
+          
+          # Clean up the branch names to remove 'adi789p/' prefix if present
+          clean_branches=$(echo "$merged_branches" | sed 's/^adi789p\///')
+          echo "Cleaned branches: $clean_branches"
 
-      # Step 4: Debug Merged Branches
-      - name: Debug Merged Branches
+          # Save the cleaned branches to an environment variable for use in later steps
+          echo "cleaned_branches=$clean_branches" >> $GITHUB_ENV
+
+      # Step 4: Debug Cleaned Branches
+      - name: Debug Cleaned Branches
         run: |
-          echo "Merged branches from the previous step: ${{ env.merged_branches }}"
+          echo "Cleaned branches from the previous step: ${{ env.cleaned_branches }}"
 
       # Step 5: Create PRs for UAT
       - name: Create PRs for UAT
         run: |
-          for feature_branch in ${{ env.merged_branches }}
+          for feature_branch in ${{ env.cleaned_branches }}
           do
             # Create PR from feature branch to uat with '-uat' suffix
             pr_title="${feature_branch}-uat"
