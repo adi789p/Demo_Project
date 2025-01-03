@@ -1,0 +1,28 @@
+name: Create UAT PR
+
+on:
+  push:
+    branches:
+      - develop  # Trigger the workflow on pushes to 'develop' branch
+
+jobs:
+  create-pr-uat:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Authenticate GitHub CLI using the custom token 'GT_TOKEN'
+      - name: Authenticate GitHub CLI
+        run: echo ${{ secrets.GT_TOKEN }} | gh auth login --with-token
+
+      # Step 3: Check for uncommitted changes (Optional)
+      - name: Check for uncommitted changes
+        run: git diff --exit-code || echo "There are uncommitted changes"
+
+      # Step 4: Create a pull request from 'develop' to 'uat' (for changes to UAT)
+      - name: Create PR for UAT
+        run: |
+          gh pr create --base uat --head develop --title "Deploy Changes to UAT" --body "PR for feature merge from develop to uat"
