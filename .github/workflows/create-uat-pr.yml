@@ -14,12 +14,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 2: Get merged feature branches from develop
-      - name: Get merged feature branches
+      # Step 2: Fetch develop branch and merged feature branches
+      - name: Fetch develop branch and get merged feature branches
         id: get_merged_branches
         run: |
+          # Fetch the develop branch to ensure we have the commit history
+          git fetch origin develop
+
           # Get the merged feature branches from 'develop' using git log
-          merged_branches=$(git log develop --merges --pretty=format:"%s" | grep -oP 'from \K\S+' | grep -vE "develop|uat")
+          merged_branches=$(git log origin/develop --merges --pretty=format:"%s" | grep -oP 'from \K\S+' | grep -vE "develop|uat")
           
           if [ -z "$merged_branches" ]; then
             echo "No merged branches found."
