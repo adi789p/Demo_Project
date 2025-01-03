@@ -1,4 +1,4 @@
-name: Create UAT PR for Feature Branches
+name: Create UAT PR
 
 on:
   push:
@@ -8,31 +8,32 @@ on:
 jobs:
   create-pr-uat:
     runs-on: ubuntu-latest
-    
+
     steps:
       # Step 1: Checkout the code
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 2: Authenticate GitHub CLI using GitHub token
-      - name: Authenticate GitHub CLI
-        run: echo ${{ secrets.GT_TOKEN }} | gh auth login --with-token
-
-      # Step 3: Fetch all branches (make sure we have the latest branches)
-      - name: Fetch all branches
-        run: git fetch --all
-
-      # Step 4: Get a list of merged feature branches from develop
-      - name: Get merged feature branches
-        id: feature_branches
+      # Step 2: Set up Git
+      - name: Set up Git
         run: |
-          # Get the list of feature branches merged into develop
-          git fetch origin develop
-          merged_branches=$(git log --merges --oneline origin/develop..origin/develop | grep 'Merge pull request' | awk -F' ' '{print $3}' | sed 's/\/.*//g')
+          git fetch --prune --unshallow
+
+      # Step 3: Get merged feature branches from develop
+      - name: Get merged feature branches
+        id: get_merged_branches
+        run: |
+          # Get merged feature branches from develop
+          merged_branches=$(git log --merges --pretty=format:"%s" | grep -oP 'Merge pull request #\d+ from \S+' | sed 's/Merge pull request #\d+ from //')
           echo "Merged branches: $merged_branches"
           echo "merged_branches=$merged_branches" >> $GITHUB_ENV
 
-      # Step 5: Loop through each feature branch and create a PR for UAT
+      # Step 4: Debug Merged Branches
+      - name: Debug Merged Branches
+        run: |
+          echo "Merged branches from the previous step: ${{ env.merged_branches }}"
+
+      # Step 5: Create PRs for UAT
       - name: Create PRs for UAT
         run: |
           for feature_branch in ${{ env.merged_branches }}
@@ -40,5 +41,7 @@ jobs:
             # Create PR from feature branch to uat with '-uat' suffix
             pr_title="${feature_branch}-uat"
             pr_body="PR for feature merge from $feature_branch to uat"
-            gh pr create --base uat --head $feature_branch --title "$pr_title" --body "$pr_body"
+            gh pr create --base uat --head $feature_branch --title "$pr_title" --body "$pr_body" --verbose
           done
+        env:
+          GH_TOKEN: ${{ secrets.GT_TOKEN }}
