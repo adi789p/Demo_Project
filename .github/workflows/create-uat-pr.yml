@@ -14,37 +14,36 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 2: Set up Git
-      - name: Set up Git
-        run: |
-          git fetch --prune --unshallow
-
-      # Step 3: Get merged feature branches from develop
+      # Step 2: Get merged feature branches from develop
       - name: Get merged feature branches
         id: get_merged_branches
         run: |
-          # Get merged feature branches from develop
-          merged_branches=$(git log --merges --pretty=format:"%s" | grep -oP 'from \K\S+' | grep -v "develop" | grep -v "uat")
-          echo "Merged branches: $merged_branches"
+          # Get the merged feature branches from 'develop' using git log
+          merged_branches=$(git log develop --merges --pretty=format:"%s" | grep -oP 'from \K\S+' | grep -vE "develop|uat")
+          
+          if [ -z "$merged_branches" ]; then
+            echo "No merged branches found."
+            exit 0
+          fi
           
           # Clean up the branch names to remove 'adi789p/' prefix if present
           clean_branches=$(echo "$merged_branches" | sed 's/^adi789p\///')
           echo "Cleaned branches: $clean_branches"
+          
+          # Save the cleaned branches into an environment variable for use in subsequent steps
+          echo "cleaned_branches=$clean_branches" >> $GITHUB_ENV
 
-          # Set the cleaned branches as output for use in subsequent steps
-          echo "::set-output name=cleaned_branches::$clean_branches"
-
-      # Step 4: Debug Cleaned Branches
-      - name: Debug Cleaned Branches
-        run: |
-          echo "Cleaned branches from the previous step: ${{ steps.get_merged_branches.outputs.cleaned_branches }}"
-
-      # Step 5: Create PRs for UAT
+      # Step 3: Create PRs for UAT from the cleaned feature branches
       - name: Create PRs for UAT
         run: |
-          for feature_branch in ${{ steps.get_merged_branches.outputs.cleaned_branches }}
+          if [ -z "$cleaned_branches" ]; then
+            echo "No branches to create PRs for."
+            exit 0
+          fi
+          
+          # Create a PR for each feature branch
+          for feature_branch in $cleaned_branches
           do
-            # Create PR from feature branch to uat with '-uat' suffix
             pr_title="${feature_branch}-uat"
             pr_body="PR for feature merge from $feature_branch to uat"
             gh pr create --base uat --head $feature_branch --title "$pr_title" --body "$pr_body"
