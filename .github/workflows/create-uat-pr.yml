@@ -47,7 +47,7 @@ jobs:
             # Create PR from feature branch to uat with '-uat' suffix
             pr_title="${feature_branch}-uat"
             pr_body="PR for feature merge from $feature_branch to uat"
-            gh pr create --base uat --head $feature_branch --title "$pr_title" --body "$pr_body" --verbose
+            gh pr create --base uat --head $feature_branch --title "$pr_title" --body "$pr_body"
           done
         env:
           GH_TOKEN: ${{ secrets.GT_TOKEN }}
