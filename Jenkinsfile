@@ -30,7 +30,7 @@ pipeline {
             steps {
                 script {
                     // Use JWT for Salesforce authentication
-                    bat 'sfdx force:auth:jwt:grant --client-id ${CLIENT_ID} --jwt-key-file ${JWT_KEY_FILE} --username ${SFDC_USERNAME} --instance-url ${SFDC_INSTANCE_URL} --set-default-dev-hub'
+                    bat 'sfdx force:auth:jwt:grant --client-id ${CLIENT_ID} --jwt-key-file ${JWT_KEY_FILE} --username ${SFDC_USERNAME} --instance-url https://login.salesforce.com --set-default-dev-hub'
                 }
             }
         }
