@@ -20,8 +20,15 @@ pipeline {
         stage('Install Salesforce CLI') {
             steps {
                 script {
-                    // Ensure Salesforce CLI is available
-                    sh 'sfdx --version'
+                    // Check if Salesforce CLI is installed
+                    echo 'Checking Salesforce CLI version...'
+                    try {
+                        sh 'sfdx --version'
+                    } catch (Exception e) {
+                        echo 'Salesforce CLI is not installed. Installing now...'
+                        sh 'npm install -g sfdx-cli'  // Attempt to install CLI
+                        sh 'sfdx --version'           // Verify installation after installation
+                    }
                 }
             }
         }
