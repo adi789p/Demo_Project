@@ -14,7 +14,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git credentialsId: 'your-github-credentials-id', url: "${GITHUB_REPO}"
+                git credentialsId: 'CLIENT_ID', url: "${GITHUB_REPO}"
             }
         }
         
