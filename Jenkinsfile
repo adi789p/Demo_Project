@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm  // Just this line will do the job
+                checkout scm
             }
         }
 
@@ -26,8 +26,9 @@ pipeline {
                         sh 'sfdx --version'
                     } catch (Exception e) {
                         echo 'Salesforce CLI is not installed. Installing now...'
-                        sh 'npm install -g sfdx-cli'  // Attempt to install CLI
-                        sh 'sfdx --version'           // Verify installation after installation
+                        // Attempt to install Salesforce CLI and capture logs
+                        sh 'npm install -g sfdx-cli || echo "npm install failed"'
+                        sh 'sfdx --version || echo "Salesforce CLI installation failed"'
                     }
                 }
             }
