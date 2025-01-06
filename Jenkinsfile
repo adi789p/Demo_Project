@@ -3,8 +3,8 @@ pipeline {
     
     environment {
         SFDC_INSTANCE_URL = 'https://login.salesforce.com'  // Use appropriate URL based on environment (Production/Sandbox)
-        SFDC_USERNAME = credentials('salesforce-username')  // Use Jenkins credentials to store Salesforce credentials
-        CLIENT_ID = credentials('salesforce-client-id')     // Use credentials for Client ID
+        SFDC_USERNAME = credentials('aditya.kumar@gvmantra.com.cpqtrial')  // Use Jenkins credentials to store Salesforce credentials
+        CLIENT_ID = credentials('3MVG9WVXk15qiz1La4iWbFc51ux9mIPoA1kPsTRWe7w.zKLUl_A0THzTyEYZeyFlkZFZ6tk68UclVDYvryAHf')     // Use credentials for Client ID
         JWT_KEY_FILE = credentials('jwt-key-file')          // Use Jenkins credentials for JWT key
         GITHUB_REPO = 'https://github.com/your-org/your-repo' // GitHub repository URL
     }
