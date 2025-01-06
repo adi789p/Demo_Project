@@ -41,7 +41,7 @@ pipeline {
             }
         }
 
-        stage('Validate Changes') {
+        stage('Deploy Changes') {
             steps {
                 script {
                     // Validate the changes in the PR
