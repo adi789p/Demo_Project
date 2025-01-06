@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'develop', credentialsId: 'github-pat', url: 'https://github.com/adi789p/Demo_Project'
+                checkout scm
             }
         }
 
