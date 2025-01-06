@@ -47,7 +47,8 @@ pipeline {
                     // Validate the changes in the PR
                     bat """
                     echo Validating changes in PR...
-                    sfdx force:source:deploy --sourcepath force-app --targetusername "${SFDC_USERNAME}" --wait 10 --validateonly --verbose
+                    sfdx force:source:deploy --sourcepath force-app --targetusername "aditya.kumar@gvmantra.com.cpqtrial" --wait 10 --checkonly --verbose
+
                     """
                 }
             }
