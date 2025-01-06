@@ -20,8 +20,11 @@ pipeline {
         stage('Install Salesforce CLI') {
             steps {
                 script {
-                    echo 'Checking Salesforce CLI version...'
-                    bat 'sfdx --version' // Salesforce CLI version check
+                    // Verify Salesforce CLI is installed
+                    bat """
+                    echo Verifying Salesforce CLI installation...
+                    sfdx --version
+                    """
                 }
             }
         }
@@ -29,21 +32,28 @@ pipeline {
         stage('Authenticate with Salesforce') {
             steps {
                 script {
-                    // Use JWT for Salesforce authentication
-                    bat 'sfdx force:auth:jwt:grant --client-id ${CLIENT_ID} --jwt-key-file ${JWT_KEY_FILE} --username ${SFDC_USERNAME} --instance-url https://login.salesforce.com --set-default-dev-hub'
+                    // Authenticate to Salesforce using JWT
+                    bat """
+                    echo Authenticating to Salesforce...
+                    sfdx force:auth:jwt:grant --clientid "${CLIENT_ID}" --jwtkeyfile "${JWT_KEY_FILE}" --username "${SFDC_USERNAME}" --instanceurl "${SFDC_INSTANCE_URL}" --setdefaultdevhubusername
+                    """
                 }
             }
         }
 
-        stage('Deploy to Salesforce') {
+        stage('Validate Changes') {
             steps {
                 script {
-                    // Deploy the source code to Salesforce
-                    bat 'sfdx force:source:deploy --sourcepath force-app --targetusername ${SFDC_USERNAME} --wait 10 --verbose'
+                    // Validate the changes in the PR
+                    bat """
+                    echo Validating changes in PR...
+                    sfdx force:source:deploy --sourcepath force-app --targetusername "${SFDC_USERNAME}" --wait 10 --validateonly --verbose
+                    """
                 }
             }
         }
     }
+    
     
     post {
         success {
