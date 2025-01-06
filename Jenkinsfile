@@ -18,21 +18,13 @@ pipeline {
         }
 
         stage('Install Salesforce CLI') {
-            steps {
-                script {
-                    // Check if Salesforce CLI is installed
-                    echo 'Checking Salesforce CLI version...'
-                    try {
-                        sh 'sfdx --version'
-                    } catch (Exception e) {
-                        echo 'Salesforce CLI is not installed. Installing now...'
-                        // Attempt to install Salesforce CLI and capture logs
-                        sh 'npm install -g sfdx-cli || echo "npm install failed"'
-                        sh 'sfdx --version || echo "Salesforce CLI installation failed"'
-                    }
-                }
-            }
+    steps {
+        script {
+            echo 'Checking Salesforce CLI version...'
+            bat 'sfdx --version' // Example for Salesforce CLI version check
         }
+    }
+}
 
         stage('Authenticate with Salesforce') {
             steps {
