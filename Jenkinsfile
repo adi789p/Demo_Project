@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    
+
     environment {
         SFDC_INSTANCE_URL = 'https://login.salesforce.com'
         SFDC_USERNAME = 'aditya.kumar@gvmantra.com.cpqtrial'
@@ -17,51 +17,56 @@ pipeline {
             }
         }
 
-        stage('Install Salesforce CLI') {
+        stage('Process Branch') {
             steps {
                 script {
-                    // Verify Salesforce CLI is installed
+                    // Detect branch type
+                    if (env.BRANCH_NAME.startsWith('feature/')) {
+                        echo "Feature branch detected: ${env.BRANCH_NAME}"
+                        currentBuild.description = "Feature Branch Validation"
+                    } else if (env.BRANCH_NAME == 'develop') {
+                        echo "Develop branch detected: Validation and Deployment"
+                        currentBuild.description = "Develop Branch Deployment"
+                    } else {
+                        error("Unsupported branch: ${env.BRANCH_NAME}")
+                    }
+                }
+            }
+        }
+
+        stage('Validate Changes') {
+            steps {
+                script {
+                    // Validate feature or develop branch
                     bat """
-                    echo Verifying Salesforce CLI installation...
-                    sfdx --version
+                    echo Validating branch ${env.BRANCH_NAME}...
+                    sfdx force:source:deploy --sourcepath force-app --targetusername "${SFDC_USERNAME}" --wait 10 --checkonly --verbose
                     """
                 }
             }
         }
 
-        stage('Authenticate with Salesforce') {
-            steps {
-                script {
-                    // Authenticate to Salesforce using JWT
-                    bat """
-                    echo Authenticating to Salesforce...
-                    sfdx force:auth:jwt:grant --clientid "${CLIENT_ID}" --jwtkeyfile "${JWT_KEY_FILE}" --username "${SFDC_USERNAME}" --instanceurl "${SFDC_INSTANCE_URL}" --setdefaultdevhubusername
-                    """
-                }
+        stage('Deploy to Salesforce (Develop Only)') {
+            when {
+                branch 'develop' // Only deploy if the branch is 'develop'
             }
-        }
-
-        stage('Deploy Changes') {
             steps {
                 script {
-                    // Validate the changes in the PR
                     bat """
-                    echo Validating changes in PR...
-                    sfdx force:source:deploy --sourcepath force-app --targetusername "aditya.kumar@gvmantra.com.cpqtrial" --wait 10 --checkonly --verbose
-
+                    echo Deploying develop branch to Salesforce...
+                    sfdx force:source:deploy --sourcepath force-app --targetusername "${SFDC_USERNAME}" --wait 10 --verbose
                     """
                 }
             }
         }
     }
-    
-    
+
     post {
         success {
-            echo 'Deployment to Salesforce was successful!'
+            echo 'Pipeline completed successfully!'
         }
         failure {
-            echo 'Deployment failed.'
+            echo 'Pipeline failed.'
         }
     }
 }
