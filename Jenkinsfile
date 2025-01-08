@@ -44,7 +44,7 @@ pipeline {
                     // Validate feature or develop branch
                     bat """
                     echo Validating branch ${env.BRANCH_NAME}...
-                    sfdx force:source:deploy --sourcepath force-app --targetusername "${SFDC_USERNAME}" --wait 10 --checkonly --verbose
+                    sfdx project deploy start --target-org "${SFDC_USERNAME}" --wait 10 --checkonly --verbose
                     """
                 }
             }
@@ -58,7 +58,7 @@ pipeline {
                 script {
                     bat """
                     echo Deploying develop branch to Salesforce...
-                    sfdx force:source:deploy --sourcepath force-app --targetusername "${SFDC_USERNAME}" --wait 10 --verbose
+                    sfdx sfdx project deploy start force-app --targetusername "${SFDC_USERNAME}" --wait 10 --verbose
                     """
                 }
             }
