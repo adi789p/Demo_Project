@@ -7,16 +7,19 @@ pipeline {
         CLIENT_ID = '3MVG9WVXk15qiz1La4iWbFc51ux9mIPoA1kPsTRWe7w.zKLUl_A0THzTyEYZeyFlkZFZ6tk68UclVDYvryAHf'
         JWT_KEY_FILE = credentials('eb15b08c-6cc2-4e5f-a01e-9614ae86a0b4')
         GITHUB_REPO = 'https://github.com/adi789p/Demo_Project'
-        GITHUB_PAT = credentials('github_pat')  // Your GitHub Personal Access Token stored in Jenkins
         PATH = "C:\\Windows\\System32;C:\\Program Files\\Salesforce CLI\\bin;${env.PATH}"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                script {
+                    // Clone the GitHub repository using the correct credentials and specify the branch
+                    git credentialsId: 'github-pat', url: "${GITHUB_REPO}", branch: 'develop'
+                }
             }
         }
+
 
         stage('Process Branch') {
             steps {
