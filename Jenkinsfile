@@ -7,34 +7,41 @@ pipeline {
         CLIENT_ID = '3MVG9WVXk15qiz1La4iWbFc51ux9mIPoA1kPsTRWe7w.zKLUl_A0THzTyEYZeyFlkZFZ6tk68UclVDYvryAHf'
         JWT_KEY_FILE = credentials('eb15b08c-6cc2-4e5f-a01e-9614ae86a0b4')
         GITHUB_REPO = 'https://github.com/adi789p/Demo_Project'
+        GITHUB_PAT = credentials('github_pat')  // Your GitHub Personal Access Token stored in Jenkins
         PATH = "C:\\Windows\\System32;C:\\Program Files\\Salesforce CLI\\bin;${env.PATH}"
     }
 
-    stages { // This block is required
+    stages {
         stage('Checkout') {
             steps {
-                checkout scm
-            }
-        }
-
-        stage('Install Salesforce CLI') {
-            steps {
                 script {
-                    bat """
-                    echo Verifying Salesforce CLI installation...
-                    sfdx --version
-                    """
+                    // Use GitHub PAT to authenticate and clone the repo
+                    withCredentials([string(credentialsId: 'github_pat', variable: 'GITHUB_PAT')]) {
+                        sh """
+                            git config --global url."https://${GITHUB_PAT}@github.com".insteadOf "https://github.com"
+                            git clone ${GITHUB_REPO}
+                        """
+                    }
                 }
             }
         }
 
-        stage('Authenticate with Salesforce') {
+        stage('Process Branch') {
             steps {
                 script {
-                    bat """
-                    echo Authenticating to Salesforce...
-                    sfdx force:auth:jwt:grant --clientid "${CLIENT_ID}" --jwtkeyfile "${JWT_KEY_FILE}" --username "${SFDC_USERNAME}" --instanceurl "${SFDC_INSTANCE_URL}" --setdefaultdevhubusername
-                    """
+                    // Detect if this is a PR build or direct push to a branch
+                    if (env.CHANGE_ID) {
+                        echo "This is a Pull Request build: ${env.CHANGE_ID}"
+                        currentBuild.description = "Feature Branch Validation (PR)"
+                    } else if (env.BRANCH_NAME.startsWith('feature/')) {
+                        echo "Feature branch detected: ${env.BRANCH_NAME}"
+                        currentBuild.description = "Feature Branch Validation"
+                    } else if (env.BRANCH_NAME == 'develop') {
+                        echo "Develop branch detected: Validation and Deployment"
+                        currentBuild.description = "Develop Branch Deployment"
+                    } else {
+                        error("Unsupported branch: ${env.BRANCH_NAME}")
+                    }
                 }
             }
         }
@@ -42,9 +49,28 @@ pipeline {
         stage('Validate Changes') {
             steps {
                 script {
+                    // Validate feature or develop branch
                     bat """
-                    echo Validating changes in PR...
-                    sfdx force:source:deploy --sourcepath force-app --targetusername "${SFDC_USERNAME}" --wait 10 --validateonly --verbose
+                    echo Validating branch ${env.BRANCH_NAME}...
+                    sfdx force:source:deploy --sourcepath force-app --targetusername "${SFDC_USERNAME}" --wait 10 --checkonly --verbose
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to Salesforce (Develop Only)') {
+            when {
+                branch 'develop' // Only deploy if the branch is 'develop'
+                not {
+                    // Skip deployment if this is a PR
+                    expression { return env.CHANGE_ID != null }
+                }
+            }
+            steps {
+                script {
+                    bat """
+                    echo Deploying develop branch to Salesforce...
+                    sfdx force:source:deploy --sourcepath force-app --targetusername "${SFDC_USERNAME}" --wait 10 --verbose
                     """
                 }
             }
