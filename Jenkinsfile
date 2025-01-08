@@ -10,16 +10,16 @@ pipeline {
         PATH = "C:\\Windows\\System32;C:\\Program Files\\Salesforce CLI\\bin;${env.PATH}"
     }
 
- stage('Checkout') {
+    stages { // This block is required
+        stage('Checkout') {
     steps {
         git url: 'https://github.com/adi789p/Demo_Project.git', credentialsId: 'github-pat'
     }
 }
-    
+
         stage('Install Salesforce CLI') {
             steps {
                 script {
-                    // Verify Salesforce CLI is installed
                     bat """
                     echo Verifying Salesforce CLI installation...
                     sfdx --version
@@ -31,7 +31,6 @@ pipeline {
         stage('Authenticate with Salesforce') {
             steps {
                 script {
-                    // Authenticate to Salesforce using JWT
                     bat """
                     echo Authenticating to Salesforce...
                     sfdx force:auth:jwt:grant --clientid "${CLIENT_ID}" --jwtkeyfile "${JWT_KEY_FILE}" --username "${SFDC_USERNAME}" --instanceurl "${SFDC_INSTANCE_URL}" --setdefaultdevhubusername
@@ -43,7 +42,6 @@ pipeline {
         stage('Validate Changes') {
             steps {
                 script {
-                    // Validate the changes in the PR
                     bat """
                     echo Validating changes in PR...
                     sfdx force:source:deploy --sourcepath force-app --targetusername "${SFDC_USERNAME}" --wait 10 --validateonly --verbose
@@ -55,9 +53,10 @@ pipeline {
 
     post {
         success {
-            echo 'PR validation was successful!'
+            echo 'Pipeline completed successfully!'
         }
         failure {
-            echo 'PR validation failed.'
+            echo 'Pipeline failed.'
         }
     }
+}
