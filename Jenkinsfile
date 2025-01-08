@@ -20,11 +20,8 @@ pipeline {
         stage('Process Branch') {
             steps {
                 script {
-                    // Detect if this is a PR build or direct push to a branch
-                    if (env.CHANGE_ID) {
-                        echo "This is a Pull Request build: ${env.CHANGE_ID}"
-                        currentBuild.description = "Feature Branch Validation (PR)"
-                    } else if (env.BRANCH_NAME.startsWith('feature/')) {
+                    // Detect branch type
+                    if (env.BRANCH_NAME.startsWith('feature/')) {
                         echo "Feature branch detected: ${env.BRANCH_NAME}"
                         currentBuild.description = "Feature Branch Validation"
                     } else if (env.BRANCH_NAME == 'develop') {
@@ -52,10 +49,6 @@ pipeline {
         stage('Deploy to Salesforce (Develop Only)') {
             when {
                 branch 'develop' // Only deploy if the branch is 'develop'
-                not {
-                    // Skip deployment if this is a PR
-                    expression { return env.CHANGE_ID != null }
-                }
             }
             steps {
                 script {
