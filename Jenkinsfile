@@ -12,10 +12,10 @@ pipeline {
 
     stages { // This block is required
         stage('Checkout') {
-    steps {
-        git url: 'https://github.com/adi789p/Demo_Project.git', credentialsId: 'github-pat'
-    }
-}
+            steps {
+                checkout scm
+            }
+        }
 
         stage('Install Salesforce CLI') {
             steps {
