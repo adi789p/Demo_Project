@@ -10,29 +10,45 @@ pipeline {
         PATH = "C:\\Windows\\System32;C:\\Program Files\\Salesforce CLI\\bin;${env.PATH}"
     }
 
+    triggers {
+        githubPush()  // Trigger the build on push events to GitHub (including PR updates)
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                script {
+                    // Debugging: print out the environment variables
+                    echo "GIT_BRANCH: ${env.GIT_BRANCH}"
+                    echo "CHANGE_ID: ${env.CHANGE_ID}"
+                    
+                    def prBranch = env.GIT_BRANCH ?: "refs/pull/${env.CHANGE_ID}/merge"
+                    echo "PR Branch: ${prBranch}"
+                    git credentialsId: 'github-pat', url: "${GITHUB_REPO}", branch: prBranch
+                }
             }
         }
 
-        stage('Process Branch') {
+        stage('Install Salesforce CLI') {
             steps {
                 script {
-                    // Detect if this is a PR build or direct push to a branch
-                    if (env.CHANGE_ID) {
-                        echo "This is a Pull Request build: ${env.CHANGE_ID}"
-                        currentBuild.description = "Feature Branch Validation (PR)"
-                    } else if (env.BRANCH_NAME.startsWith('feature/')) {
-                        echo "Feature branch detected: ${env.BRANCH_NAME}"
-                        currentBuild.description = "Feature Branch Validation"
-                    } else if (env.BRANCH_NAME == 'develop') {
-                        echo "Develop branch detected: Validation and Deployment"
-                        currentBuild.description = "Develop Branch Deployment"
-                    } else {
-                        error("Unsupported branch: ${env.BRANCH_NAME}")
-                    }
+                    // Verify Salesforce CLI is installed
+                    bat """
+                    echo Verifying Salesforce CLI installation...
+                    sfdx --version
+                    """
+                }
+            }
+        }
+
+        stage('Authenticate with Salesforce') {
+            steps {
+                script {
+                    // Authenticate to Salesforce using JWT
+                    bat """
+                    echo Authenticating to Salesforce...
+                    sfdx force:auth:jwt:grant --clientid "${CLIENT_ID}" --jwtkeyfile "${JWT_KEY_FILE}" --username "${SFDC_USERNAME}" --instanceurl "${SFDC_INSTANCE_URL}" --setdefaultdevhubusername
+                    """
                 }
             }
         }
@@ -40,28 +56,10 @@ pipeline {
         stage('Validate Changes') {
             steps {
                 script {
-                    // Validate feature or develop branch
+                    // Validate the changes in the PR
                     bat """
-                    echo Validating branch ${env.BRANCH_NAME}...
-                    sfdx force:source:deploy --sourcepath force-app --targetusername "${SFDC_USERNAME}" --wait 10 --checkonly --verbose
-                    """
-                }
-            }
-        }
-
-        stage('Deploy to Salesforce (Develop Only)') {
-            when {
-                branch 'develop' // Only deploy if the branch is 'develop'
-                not {
-                    // Skip deployment if this is a PR
-                    expression { return env.CHANGE_ID != null }
-                }
-            }
-            steps {
-                script {
-                    bat """
-                    echo Deploying develop branch to Salesforce...
-                    sfdx force:source:deploy --sourcepath force-app --targetusername "${SFDC_USERNAME}" --wait 10 --verbose
+                    echo Validating changes in PR...
+                    sfdx force:source:deploy --sourcepath force-app --targetusername "${SFDC_USERNAME}" --wait 10 --validateonly --verbose
                     """
                 }
             }
@@ -70,10 +68,10 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'PR validation was successful!'
         }
         failure {
-            echo 'Pipeline failed.'
+            echo 'PR validation failed.'
         }
     }
 }
