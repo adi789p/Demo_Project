@@ -56,7 +56,7 @@ pipeline {
                     // Validate feature or develop branch
                     bat """
                     echo Validating branch ${env.BRANCH_NAME}...
-                    sfdx project deploy validate --target-org "aditya.kumar@gvmantra.com.cpqtrial" --wait 10 --verbose
+                    sfdx project deploy validate force-app --targetusername "${SFDC_USERNAME}" --wait 10 --verbose
                     """
                 }
             }
