@@ -5,7 +5,7 @@ pipeline {
         SFDC_INSTANCE_URL = 'https://login.salesforce.com'
         SFDC_USERNAME = 'aditya.kumar@gvmantra.com.cpqtrial'
         CLIENT_ID = '3MVG9WVXk15qiz1La4iWbFc51ux9mIPoA1kPsTRWe7w.zKLUl_A0THzTyEYZeyFlkZFZ6tk68UclVDYvryAHf'
-        JWT_KEY_FILE = credentials('eb15b08c-6cc2-4e5f-a01e-9614ae86a0b4')
+        JWT_KEY_FILE = credentials('eb15b08c-6cc2-4e5f-a01e-9614ae86a0b4') // Ensure the correct credential ID is used
         GITHUB_REPO = 'https://github.com/adi789p/Demo_Project'
         PATH = "C:\\Windows\\System32;C:\\Program Files\\Salesforce CLI\\bin;${env.PATH}"
     }
@@ -19,7 +19,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Process Branch') {
             steps {
@@ -37,26 +36,26 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Authorize Salesforce CLI') {
-    steps {
-        script {
-            // Authorizing using JWT
-            bat """
-            echo Authorizing Salesforce CLI...
-            sfdx auth:jwt:grant --clientid "${CLIENT_ID}" --jwtkeyfile "${JWT_KEY_FILE}" --username "${SFDC_USERNAME}" --instanceurl "${SFDC_INSTANCE_URL}" --setdefaultusername
-            """
+            steps {
+                script {
+                    // Authorizing using JWT
+                    bat """
+                    echo Authorizing Salesforce CLI...
+                    sfdx auth:jwt:grant --clientid "${CLIENT_ID}" --jwtkeyfile "${JWT_KEY_FILE}" --username "${SFDC_USERNAME}" --instanceurl "${SFDC_INSTANCE_URL}" --setdefaultusername
+                    """
+                }
+            }
         }
-    }
-}
 
         stage('Validate Changes') {
             steps {
                 script {
-                    // Validate feature or develop branch
+                    // Validate changes with dry-run for develop or feature branch
                     bat """
                     echo Validating branch ${env.BRANCH_NAME}...
-                    sf project deploy validate force-app --targetusername "${SFDC_USERNAME}" --wait 10 --verbose
+                    sfdx project deploy start --target-org "${SFDC_USERNAME}" --wait 10 --dry-run --verbose
                     """
                 }
             }
@@ -70,7 +69,7 @@ pipeline {
                 script {
                     bat """
                     echo Deploying develop branch to Salesforce...
-                    sf project deploy start force-app --targetusername "${SFDC_USERNAME}" --wait 10 --verbose
+                    sfdx project deploy start --target-org "${SFDC_USERNAME}" --wait 10 --verbose
                     """
                 }
             }
@@ -86,5 +85,3 @@ pipeline {
         }
     }
 }
-
-
