@@ -37,6 +37,18 @@ pipeline {
                 }
             }
         }
+        
+        stage('Authorize Salesforce CLI') {
+    steps {
+        script {
+            // Authorizing using JWT
+            bat """
+            echo Authorizing Salesforce CLI...
+            sfdx auth:jwt:grant --clientid "${CLIENT_ID}" --jwtkeyfile "${JWT_KEY_FILE}" --username "${SFDC_USERNAME}" --instanceurl "${SFDC_INSTANCE_URL}" --setdefaultusername
+            """
+        }
+    }
+}
 
         stage('Validate Changes') {
             steps {
