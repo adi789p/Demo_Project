@@ -14,15 +14,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                script {
-                    // Use GitHub PAT to authenticate and clone the repo
-                    withCredentials([string(credentialsId: 'github_pat', variable: 'GITHUB_PAT')]) {
-                        sh """
-                            git config --global url."https://${GITHUB_PAT}@github.com".insteadOf "https://github.com"
-                            git clone ${GITHUB_REPO}
-                        """
-                    }
-                }
+                checkout scm
             }
         }
 
