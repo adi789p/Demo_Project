@@ -10,24 +10,14 @@ pipeline {
         PATH = "C:\\Windows\\System32;C:\\Program Files\\Salesforce CLI\\bin;${env.PATH}"
     }
 
-    triggers {
-        githubPush()  // Trigger the build on push events to GitHub (including PR updates)
-    }
-
-    stages {
+     stages {
         stage('Checkout') {
             steps {
-                script {
-                    // Debugging: print out the environment variables
-                    echo "GIT_BRANCH: ${env.GIT_BRANCH}"
-                    echo "CHANGE_ID: ${env.CHANGE_ID}"
-                    
-                    def prBranch = env.GIT_BRANCH ?: "refs/pull/${env.CHANGE_ID}/merge"
-                    echo "PR Branch: ${prBranch}"
-                    git credentialsId: 'github-pat', url: "${GITHUB_REPO}", branch: prBranch
-                }
+                checkout scm
             }
         }
+
+
 
         stage('Install Salesforce CLI') {
             steps {
