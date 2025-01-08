@@ -61,4 +61,3 @@ pipeline {
             echo 'PR validation failed.'
         }
     }
-}
