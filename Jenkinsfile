@@ -10,15 +10,12 @@ pipeline {
         PATH = "C:\\Windows\\System32;C:\\Program Files\\Salesforce CLI\\bin;${env.PATH}"
     }
 
-     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-
-
+ stage('Checkout') {
+    steps {
+        git url: 'https://github.com/adi789p/Demo_Project.git', credentialsId: 'github-pat'
+    }
+}
+    
         stage('Install Salesforce CLI') {
             steps {
                 script {
