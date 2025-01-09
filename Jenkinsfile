@@ -10,15 +10,14 @@ pipeline {
         PATH = "C:\\Windows\\System32;C:\\Program Files\\Salesforce CLI\\bin;${env.PATH}"
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                script {
-                    // Clone the GitHub repository using the correct credentials and specify the branch
-                    git credentialsId: 'github-pat', url: "${GITHUB_REPO}", branch: 'develop'
-                }
-            }
+    stage('Checkout') {
+    steps {
+        script {
+            // Checkout the source code as configured in Jenkins job
+            checkout scm
         }
+    }
+}
 
         stage('Process Branch') {
     steps {
