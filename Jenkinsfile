@@ -10,33 +10,34 @@ pipeline {
         PATH = "C:\\Windows\\System32;C:\\Program Files\\Salesforce CLI\\bin;${env.PATH}"
     }
 
-    stage('Checkout') {
-    steps {
-        script {
-            // Checkout the source code as configured in Jenkins job
-            checkout scm
-        }
-    }
-    }
-
-        stage('Process Branch') {
-    steps {
-        script {
-            if (env.CHANGE_ID) {
-                echo "Pull Request detected: PR-${env.CHANGE_ID}"
-                currentBuild.description = "Pull Request Validation for ${env.CHANGE_BRANCH} -> ${env.CHANGE_TARGET}"
-            } else if (env.BRANCH_NAME.startsWith('feature/')) {
-                echo "Feature branch detected: ${env.BRANCH_NAME}"
-                currentBuild.description = "Feature Branch Validation"
-            } else if (env.BRANCH_NAME == 'develop') {
-                echo "Develop branch detected: Validation and Deployment"
-                currentBuild.description = "Develop Branch Deployment"
-            } else {
-                error("Unsupported branch: ${env.BRANCH_NAME}")
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    // Checkout the source code as configured in Jenkins job
+                    checkout scm
+                }
             }
         }
-    }
-}
+
+        stage('Process Branch') {
+            steps {
+                script {
+                    if (env.CHANGE_ID) {
+                        echo "Pull Request detected: PR-${env.CHANGE_ID}"
+                        currentBuild.description = "Pull Request Validation for ${env.CHANGE_BRANCH} -> ${env.CHANGE_TARGET}"
+                    } else if (env.BRANCH_NAME.startsWith('feature/')) {
+                        echo "Feature branch detected: ${env.BRANCH_NAME}"
+                        currentBuild.description = "Feature Branch Validation"
+                    } else if (env.BRANCH_NAME == 'develop') {
+                        echo "Develop branch detected: Validation and Deployment"
+                        currentBuild.description = "Develop Branch Deployment"
+                    } else {
+                        error("Unsupported branch: ${env.BRANCH_NAME}")
+                    }
+                }
+            }
+        }
 
         stage('Authorize Salesforce CLI') {
             steps {
@@ -85,4 +86,4 @@ pipeline {
             echo 'Pipeline failed.'
         }
     }
-
+}
