@@ -17,7 +17,7 @@ pipeline {
             checkout scm
         }
     }
-}
+    }
 
         stage('Process Branch') {
     steps {
@@ -85,4 +85,4 @@ pipeline {
             echo 'Pipeline failed.'
         }
     }
-}
+
