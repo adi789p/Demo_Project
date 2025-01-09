@@ -1,5 +1,9 @@
 pipeline {
     agent any
+triggers {
+        // Trigger the pipeline whenever there is a GitHub push (this includes PR events)
+        githubPush()
+    }
 
     environment {
         SFDC_INSTANCE_URL = 'https://login.salesforce.com'
