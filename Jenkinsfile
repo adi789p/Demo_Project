@@ -21,21 +21,23 @@ pipeline {
         }
 
         stage('Process Branch') {
-            steps {
-                script {
-                    // Detect branch type
-                    if (env.BRANCH_NAME.startsWith('feature/')) {
-                        echo "Feature branch detected: ${env.BRANCH_NAME}"
-                        currentBuild.description = "Feature Branch Validation"
-                    } else if (env.BRANCH_NAME == 'develop') {
-                        echo "Develop branch detected: Validation and Deployment"
-                        currentBuild.description = "Develop Branch Deployment"
-                    } else {
-                        error("Unsupported branch: ${env.BRANCH_NAME}")
-                    }
-                }
+    steps {
+        script {
+            if (env.CHANGE_ID) {
+                echo "Pull Request detected: PR-${env.CHANGE_ID}"
+                currentBuild.description = "Pull Request Validation for ${env.CHANGE_BRANCH} -> ${env.CHANGE_TARGET}"
+            } else if (env.BRANCH_NAME.startsWith('feature/')) {
+                echo "Feature branch detected: ${env.BRANCH_NAME}"
+                currentBuild.description = "Feature Branch Validation"
+            } else if (env.BRANCH_NAME == 'develop') {
+                echo "Develop branch detected: Validation and Deployment"
+                currentBuild.description = "Develop Branch Deployment"
+            } else {
+                error("Unsupported branch: ${env.BRANCH_NAME}")
             }
         }
+    }
+}
 
         stage('Authorize Salesforce CLI') {
             steps {
