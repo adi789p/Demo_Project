@@ -1,2 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
 
-<p>HEYYY ! Agentforce working </p>
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+
+  <title>My GitHub Live Site</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Website is Live ✅</h1>
+  <p>If you can see this text, GitHub Pages is working.</p>
+
+  <!-- Salesforce Embedded Messaging -->
+  <script type="text/javascript">
+    function initEmbeddedMessaging() {
+      try {
+        embeddedservice_bootstrap.settings.language = 'en_US';
+
+        embeddedservice_bootstrap.init(
+          '00DS900000DRZFB',
+          'Agentforce_Customer_Support_Dev',
+          'https://nuffieldhealth-crm--mintdev.sandbox.my.site.com/ESWAgentforceCustomerSu1764669389369',
+          {
+            scrt2URL: 'https://nuffieldhealth-crm--mintdev.sandbox.my.salesforce-scrt.com'
+          }
+        );
+      } catch (err) {
+        console.error('Error loading Embedded Messaging: ', err);
+      }
+    };
+  </script>
+
+  <script
+    type="text/javascript"
+    src="https://nuffieldhealth-crm--mintdev.sandbox.my.site.com/ESWAgentforceCustomerSu1764669389369/assets/js/bootstrap.min.js"
+    onload="initEmbeddedMessaging()">
+  </script>
+
+</body>
+</html>
+
